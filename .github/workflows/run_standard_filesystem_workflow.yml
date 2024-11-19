@@ -29,7 +29,7 @@ jobs:
   extract_from_site:
     needs: maybe_skip
     if: needs.maybe_skip.outputs.should_skip != 'true'
-    runs-on: ubuntu-latest#
+    runs-on: ubuntu-latest
     steps:
     - name: Check out
       uses: actions/checkout@v3
