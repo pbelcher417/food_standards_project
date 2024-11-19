@@ -2,7 +2,6 @@ import requests
 import pandas as pd
 import json
 import xml.etree.ElementTree as ET
-from dotenv import load_dotenv
 from google.cloud import storage
 import os
 
@@ -15,10 +14,8 @@ def upload_to_gcs(bucket_name: str, source_file_name: str, destination_blob_name
         destination_blob_name (str): Name of the blob to be saved to
     """
     
-    service_account_path = "C:\\Users\\pbelc\\Downloads\\food-standards-project-b092f53e7334.json"
-    client = storage.Client.from_service_account_json(service_account_path)
-
-    bucket = client.get_bucket(bucket_name)
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
 
    # Create a new blob (file object) and upload the file’s content
     blob = bucket.blob(destination_blob_name)

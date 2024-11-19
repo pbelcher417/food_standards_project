@@ -1,7 +1,7 @@
 name: Run standard_filesystem pipeline from food_hygiene__gcs_bq_pipeline.py
 'on':
   schedule:
-  - cron: 2 * * * *
+  - cron: 0 2 * * *
   workflow_dispatch: null
 env:
   DESTINATION__BIGQUERY__DATASET_NAME: food_standards
@@ -12,6 +12,7 @@ env:
   SOURCES__FILESYSTEM__CREDENTIALS__CLIENT_EMAIL: food-standards-etl-service-acc@food-standards-project.iam.gserviceaccount.com
   DESTINATION__BIGQUERY__CREDENTIALS__PRIVATE_KEY: ${{ secrets.DESTINATION__BIGQUERY__CREDENTIALS__PRIVATE_KEY }}
   SOURCES__FILESYSTEM__CREDENTIALS__PRIVATE_KEY: ${{ secrets.SOURCES__FILESYSTEM__CREDENTIALS__PRIVATE_KEY }}
+  DESTINATION__STORAGE__CREDENTIALS__PRIVATE_KEY: ${{ secrets.DESTINATION__BIGQUERY__CREDENTIALS__PRIVATE_SERVICE_ACCOUNT_FILE }}
 jobs:
   maybe_skip:
     runs-on: ubuntu-latest
@@ -24,6 +25,30 @@ jobs:
         concurrent_skipping: always
         skip_after_successful_duplicate: 'false'
         do_not_skip: '[]'
+
+  extract_from_site:
+    needs: maybe_skip
+    if: needs.maybe_skip.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest#
+    steps:
+    - name: Check out
+      uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.10.x
+    - uses: syphar/restore-virtualenv@v1
+      id: cache-virtualenv
+      with:
+        requirement_files: requirements_github_action.txt
+    - uses: syphar/restore-pip-download-cache@v1
+    - name: Set up Google Cloud credentials
+      run: echo DESTINATION__STORAGE__CREDENTIALS__PRIVATE_KEY > /tmp/key.json
+    - name: Set environment variable
+      run: export GOOGLE_APPLICATION_CREDENTIALS=/tmp/key.json
+    - name: Run Authorities Extract
+      run: cd 'food_standards_etl/food_standards_data_download' && python 'authorities_extract.py'
+
   run_pipeline:
     needs: maybe_skip
     if: needs.maybe_skip.outputs.should_skip != 'true'
