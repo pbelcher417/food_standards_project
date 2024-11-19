@@ -48,20 +48,11 @@ jobs:
       
     - name: Set up Google Cloud credentials
       run: echo DESTINATION__STORAGE__CREDENTIALS__PRIVATE_KEY > gcloud-key.json
-    - name: Set environment variable
-      run: export GOOGLE_APPLICATION_CREDENTIALS=$PWD/gcloud-key.json
-
-    - name: Debug Environment Variable
-      run: echo $GOOGLE_APPLICATION_CREDENTIALS
-
-    - name: List Files
-      run: ls -la
-
-    - name: Inspect JSON File
-      run: cat gcloud-key.json
 
     - name: Run Authorities Extract
-      run: cd 'food_standards_etl/food_standards_data_download' && python 'authorities_extract.py'
+      run: |
+        export GOOGLE_APPLICATION_CREDENTIALS=$PWD/gcloud-key.json
+        cd 'food_standards_etl/food_standards_data_download' && python 'authorities_extract.py'
 
   run_pipeline:
     needs: 
