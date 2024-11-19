@@ -50,7 +50,9 @@ jobs:
       run: cd 'food_standards_etl/food_standards_data_download' && python 'authorities_extract.py'
 
   run_pipeline:
-    needs: maybe_skip
+    needs: 
+      - maybe_skip
+      - extract_from_site
     if: needs.maybe_skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
