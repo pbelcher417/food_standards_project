@@ -42,6 +42,10 @@ jobs:
       with:
         requirement_files: requirements_github_action.txt
     - uses: syphar/restore-pip-download-cache@v1
+      if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+    - run: pip install -r requirements_github_action.txt
+      if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+      
     - name: Set up Google Cloud credentials
       run: echo DESTINATION__STORAGE__CREDENTIALS__PRIVATE_KEY > /tmp/key.json
     - name: Set environment variable
