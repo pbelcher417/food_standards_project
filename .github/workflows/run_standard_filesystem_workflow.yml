@@ -12,7 +12,7 @@ env:
   SOURCES__FILESYSTEM__CREDENTIALS__CLIENT_EMAIL: food-standards-etl-service-acc@food-standards-project.iam.gserviceaccount.com
   DESTINATION__BIGQUERY__CREDENTIALS__PRIVATE_KEY: ${{ secrets.DESTINATION__BIGQUERY__CREDENTIALS__PRIVATE_KEY }}
   SOURCES__FILESYSTEM__CREDENTIALS__PRIVATE_KEY: ${{ secrets.SOURCES__FILESYSTEM__CREDENTIALS__PRIVATE_KEY }}
-  DESTINATION__STORAGE__CREDENTIALS__PRIVATE_KEY: ${{ secrets.DESTINATION__BIGQUERY__CREDENTIALS__PRIVATE_SERVICE_ACCOUNT_FILE }}
+
 jobs:
   maybe_skip:
     runs-on: ubuntu-latest
@@ -41,18 +41,18 @@ jobs:
       id: cache-virtualenv
       with:
         requirement_files: requirements_github_action.txt
+
+    - uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.DESTINATION__BIGQUERY__CREDENTIALS__PRIVATE_SERVICE_ACCOUNT_FILE }}' # Replace with the name of your GitHub Actions secret
+      
     - uses: syphar/restore-pip-download-cache@v1
       if: steps.cache-virtualenv.outputs.cache-hit != 'true'
     - run: pip install -r requirements_github_action.txt
       if: steps.cache-virtualenv.outputs.cache-hit != 'true'
       
-    - name: Set up Google Cloud credentials
-      run: echo DESTINATION__STORAGE__CREDENTIALS__PRIVATE_KEY > gcloud-key.json
-
     - name: Run Authorities Extract
-      run: |
-        export GOOGLE_APPLICATION_CREDENTIALS=$PWD/gcloud-key.json
-        cd 'food_standards_etl/food_standards_data_download' && python 'authorities_extract.py'
+      run: cd 'food_standards_etl/food_standards_data_download' && python 'authorities_extract.py'
 
   run_pipeline:
     needs: 
